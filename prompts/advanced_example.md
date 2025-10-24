@@ -28,7 +28,7 @@ Golden hour lighting, soft and diffused. Color palette: deep forest green, amber
 
 ## Input Reference (optional)
 
-images/cloaked_man.jpg
+images/cloaked_man.png
 
 ## Audio (optional)
 

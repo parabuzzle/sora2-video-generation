@@ -188,6 +188,7 @@ Both models currently support: 4, 8, or 12 second videos
 - **Video storage:** Generated videos are stored for 15 days before automatic deletion
 - **Fixed durations:** Both models support 4, 8, or 12 seconds only
 - **Cost:** Approximately $3 per 10-second video (costs vary by model and duration)
+- **Input reference restrictions:** Images cannot contain identifiable human faces (will be blocked by moderation)
 - **Note:** Despite web app supporting longer durations, the API currently limits both models to 4/8/12 seconds
 
 ## Project Structure

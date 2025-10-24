@@ -157,3 +157,4 @@ The `map_duration_to_valid()` function maps requested durations to the nearest v
 - **No job cancellation**: Once submitted, jobs cannot be cancelled and will be billed
 - **Video storage**: Videos are stored for 15 days before automatic deletion
 - **Delete vs Cancel**: The delete operation removes completed videos from storage, but does not cancel in-progress jobs
+- **Input reference moderation**: Images with identifiable human faces will be blocked by OpenAI's moderation system (blur or obscure faces)

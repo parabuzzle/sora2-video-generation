@@ -203,7 +203,8 @@ def poll_job_status(client, job_id, poll_interval=10):
                 print("  Video generation completed!")
                 return job
             elif status == 'failed':
-                print(f"  Video generation failed: {job.get('error', 'Unknown error')}")
+                error_msg = getattr(job, 'error', 'Unknown error')
+                print(f"  Video generation failed: {error_msg}")
                 sys.exit(1)
             elif status in ['pending', 'processing', 'queued', 'in_progress']:
                 # Valid processing states - continue waiting
@@ -333,7 +334,8 @@ def retrieve_video_by_id(job_id):
             print(f"Output: {video_path}")
             print(f"{'='*60}")
         elif status == 'failed':
-            print(f"  Video generation failed: {job.get('error', 'Unknown error')}")
+            error_msg = getattr(job, 'error', 'Unknown error')
+            print(f"  Video generation failed: {error_msg}")
             sys.exit(1)
         elif status in ['pending', 'processing', 'queued', 'in_progress']:
             print(f"  Video is still processing. Waiting for completion...")
