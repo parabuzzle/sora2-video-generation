@@ -35,8 +35,8 @@ The problem I'm solving here is multi faceted.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/halloween.git
-cd halloween
+git clone https://github.com/parabuzzle/sora2-video-generation
+cd sora2-video-generation
 ```
 
 2. Install dependencies:
@@ -138,14 +138,17 @@ Create markdown files in the `prompts/` directory. See `prompts/advanced_example
 # Video Title
 
 ## Prompt
+
 Your video description here...
 
 ## Video Settings
+
 | model | sora-2 |
 | duration | 12 seconds |
 | orientation | landscape |
 
 ## Audio (optional)
+
 path/to/audio.mp3
 ```
 
@@ -153,19 +156,24 @@ path/to/audio.mp3
 
 ```markdown
 ## Camera (optional)
+
 Wide shot, 85mm lens, f/2.8, slow dolly-in
 
 ## Lighting (optional)
+
 Golden hour, soft diffused. Palette: amber, forest green, warm grey
 
 ## Dialogue (optional)
+
 "Your spoken lines here"
 
 ## Input Reference (optional)
+
 images/reference.jpg
 ```
 
 **Model Options:**
+
 - `sora-2` (default): Standard model
 - `sora-2-pro`: Pro model (higher quality, higher cost)
 
@@ -227,6 +235,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you encounter issues or have questions:
 
-- Check the [Issues](https://github.com/YOUR-USERNAME/halloween/issues) page
+- Check the [Issues](https://github.com/parabuzzle/sora2-video-generation/issues) page
 - Read the [CONTRIBUTING.md](CONTRIBUTING.md) guide
 - Review the OpenAI [Sora 2 documentation](https://platform.openai.com/docs/guides/video-generation)

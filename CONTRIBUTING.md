@@ -5,7 +5,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR-USERNAME/halloween.git`
+2. Clone your fork: `git clone https://github.com/YOUR-USERNAME/sora2-video-generation`
 3. Create a new branch: `git checkout -b feature/your-feature-name`
 4. Make your changes
 5. Test your changes thoroughly
@@ -46,6 +46,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 ### Bug Reports
 
 When reporting bugs, please include:
+
 - Python version
 - Operating system
 - Steps to reproduce the issue
@@ -55,6 +56,7 @@ When reporting bugs, please include:
 ### Feature Requests
 
 When suggesting features:
+
 - Explain the use case
 - Describe how it would work
 - Consider backward compatibility
@@ -63,6 +65,7 @@ When suggesting features:
 ### Code Contributions
 
 We welcome:
+
 - Bug fixes
 - New features
 - Documentation improvements
@@ -92,6 +95,7 @@ All submissions require review. We'll provide feedback and may request changes. 
 ## API Cost Considerations
 
 Remember that Sora 2 API calls cost money (~$3 per 10-second video). When testing:
+
 - Use the shortest duration possible (4 seconds)
 - Delete test videos after verifying they work
 - Consider the cost impact of features you add
@@ -99,6 +103,7 @@ Remember that Sora 2 API calls cost money (~$3 per 10-second video). When testin
 ## Questions?
 
 If you have questions about contributing, feel free to:
+
 - Open an issue for discussion
 - Ask in pull request comments
 - Check existing issues for similar questions
