@@ -1,8 +1,8 @@
-# The Initial Test Prompt
+# Simple Example
 
 ## Overview
 
-A simple test of the video creation system.
+A basic example demonstrating the core video generation features.
 
 ## Prompt
 
@@ -18,6 +18,18 @@ A video showing a scientist in a lab coat in front of a large amount of nuclear 
 
 None
 
-## Inspiration Image (optional)
+## Camera (optional)
+
+None
+
+## Lighting (optional)
+
+None
+
+## Dialogue (optional)
+
+None
+
+## Input Reference (optional)
 
 None

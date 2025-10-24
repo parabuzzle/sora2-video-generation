@@ -69,17 +69,14 @@ OPENAI_API_KEY=your_api_key_here
 Generate a video from a prompt file:
 
 ```bash
-python3 generate.py --promptfile prompts/testing.md
+python3 generate.py --promptfile prompts/simple_example.md
 ```
 
-You can also specify the model via command-line (overrides prompt file):
+You can optionally override the model from the command-line:
 
 ```bash
-# Use sora-2 (4/8/12 second videos)
-python3 generate.py --promptfile prompts/testing.md --model sora-2
-
-# Use sora-2-pro (10/15/25 second videos, higher quality)
-python3 generate.py --promptfile prompts/testing.md --model sora-2-pro
+# Override to use sora-2-pro (higher quality)
+python3 generate.py --promptfile prompts/simple_example.md --model sora-2-pro
 ```
 
 The script will:
@@ -133,47 +130,65 @@ This will display a table with:
 
 ## Prompt File Format
 
-Create markdown files in the `prompts/` directory with this structure:
+Create markdown files in the `prompts/` directory. See `prompts/advanced_example.md` for a complete example.
+
+### Basic Structure
 
 ```markdown
 # Video Title
 
 ## Prompt
-
 Your video description here...
 
 ## Video Settings
-
 | model | sora-2 |
 | duration | 12 seconds |
 | orientation | landscape |
 
 ## Audio (optional)
-
 path/to/audio.mp3
+```
 
-## Inspiration Image (optional)
+### Advanced Features (Optional)
 
-path/to/image.jpg
+```markdown
+## Camera (optional)
+Wide shot, 85mm lens, f/2.8, slow dolly-in
+
+## Lighting (optional)
+Golden hour, soft diffused. Palette: amber, forest green, warm grey
+
+## Dialogue (optional)
+"Your spoken lines here"
+
+## Input Reference (optional)
+images/reference.jpg
 ```
 
 **Model Options:**
+- `sora-2` (default): Standard model
+- `sora-2-pro`: Pro model (higher quality, higher cost)
 
-- `sora-2` (default): Standard model, supports 4, 8, or 12 second videos
-- `sora-2-pro`: Pro model, supports 10, 15, or 25 second videos (higher quality, higher cost)
+Both models currently support: 4, 8, or 12 second videos
 
 **Supported orientations:** landscape (1280x720), portrait (720x1280), square (1080x1080)
 
 **Duration mapping:** The script automatically maps your requested duration to the nearest valid value for the selected model
 
+### Advanced Prompting Tips
+
+- **Camera**: Describe shot type, lens (e.g., 85mm), aperture (f-stop), and camera movement
+- **Lighting**: Specify time of day, lighting style, and color palette
+- **Dialogue**: Separate spoken lines from visual description for better results
+- **Input Reference**: Single image used as first frame for image-to-video generation (must match target resolution)
+
 ## API Limitations
 
 - **No job cancellation:** Once a video generation job is submitted, it cannot be cancelled
 - **Video storage:** Generated videos are stored for 15 days before automatic deletion
-- **Fixed durations:**
-  - sora-2: 4, 8, or 12 seconds
-  - sora-2-pro: 10, 15, or 25 seconds
+- **Fixed durations:** Both models support 4, 8, or 12 seconds only
 - **Cost:** Approximately $3 per 10-second video (costs vary by model and duration)
+- **Note:** Despite web app supporting longer durations, the API currently limits both models to 4/8/12 seconds
 
 ## Project Structure
 
@@ -181,7 +196,8 @@ path/to/image.jpg
 sora2-video-generation/
 ├── generate.py           # Main CLI script
 ├── prompts/             # Markdown prompt files
-│   └── testing.md       # Example prompt
+│   ├── simple_example.md    # Basic example
+│   └── advanced_example.md  # Advanced features example
 ├── output/              # Generated videos (created automatically)
 ├── audio/               # Audio files for overlay (optional)
 ├── images/              # Reference images (optional)

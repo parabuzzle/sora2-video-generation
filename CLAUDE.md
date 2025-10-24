@@ -22,10 +22,10 @@ Optional: Install `ffmpeg` for audio overlay functionality
 
 Generate a new video:
 ```bash
-python3 generate.py --promptfile prompts/testing.md
+python3 generate.py --promptfile prompts/simple_example.md
 
-# Or specify model via CLI (overrides prompt file)
-python3 generate.py --promptfile prompts/testing.md --model sora-2-pro
+# Optionally override model from prompt file
+python3 generate.py --promptfile prompts/simple_example.md --model sora-2-pro
 ```
 
 Retrieve an existing video by job ID (if interrupted or failed):
@@ -54,33 +54,40 @@ Job IDs are saved to `.sora_jobs` file automatically. Videos are stored for 15 d
 1. **parse_markdown_prompt(file_path)**: Parses markdown files to extract:
    - Prompt text from `## Prompt` section
    - Model, duration, and orientation from `## Video Settings` table
+   - Optional input reference image from `## Input Reference` section (for image-to-video)
+   - Optional camera/shot metadata from `## Camera` section
+   - Optional lighting/palette from `## Lighting` section
+   - Optional dialogue from `## Dialogue` section
    - Optional audio file path from `## Audio` section
-   - Optional inspiration image from `## Inspiration Image` section
 
 2. **get_resolution(orientation)**: Maps orientation strings to Sora resolution format:
    - landscape → 1280x720
    - portrait → 720x1280
    - square → 1080x1080
 
-3. **map_duration_to_valid(duration, model)**: Maps requested duration to nearest valid value for the selected model:
-   - sora-2: 4, 8, or 12 seconds
-   - sora-2-pro: 10, 15, or 25 seconds
+3. **build_enhanced_prompt(base_prompt, camera, lighting, dialogue)**: Builds enhanced prompt following Sora's recommended structure:
+   - Combines base prompt with camera metadata
+   - Adds lighting and palette information
+   - Separates dialogue block from visual description
 
-4. **generate_video(client, prompt, duration, resolution, model)**: Submits video generation request to Sora API using `client.videos.create()` with the specified model
+4. **map_duration_to_valid(duration, model)**: Maps requested duration to nearest valid value:
+   - Both models: 4, 8, or 12 seconds
 
-5. **poll_job_status(client, job_id, poll_interval)**: Polls job status every 10 seconds until completion or failure. Recognizes valid statuses: 'pending', 'processing', 'queued', 'in_progress', 'completed', 'failed'
+5. **generate_video(client, prompt, duration, resolution, model, input_reference)**: Submits video generation request to Sora API using `client.videos.create()`. Supports image-to-video mode via input_reference parameter
 
-6. **download_video(client, job, output_dir)**: Downloads completed video to `output/` directory with timestamp
+6. **poll_job_status(client, job_id, poll_interval)**: Polls job status every 10 seconds until completion or failure. Recognizes valid statuses: 'pending', 'processing', 'queued', 'in_progress', 'completed', 'failed'
 
-7. **overlay_audio(video_path, audio_path)**: Uses ffmpeg to overlay audio on generated video (optional)
+7. **download_video(client, job, output_dir)**: Downloads completed video to `output/` directory with timestamp
 
-8. **save_job_id(job_id, prompt_file)**: Saves job ID to `.sora_jobs` file with timestamp for recovery
+8. **overlay_audio(video_path, audio_path)**: Uses ffmpeg to overlay audio on generated video (optional)
 
-9. **retrieve_video_by_id(job_id)**: Retrieves and downloads video by job ID, handling all statuses including in-progress jobs
+9. **save_job_id(job_id, prompt_file)**: Saves job ID to `.sora_jobs` file with timestamp for recovery
 
-10. **delete_video_by_id(job_id)**: Deletes video from OpenAI storage using `client.videos.delete()`
+10. **retrieve_video_by_id(job_id)**: Retrieves and downloads video by job ID, handling all statuses including in-progress jobs
 
-11. **list_videos()**: Lists all videos in OpenAI storage using `client.videos.list()`, displaying job ID, status, duration, resolution, creation timestamp, and progress for in-progress videos
+11. **delete_video_by_id(job_id)**: Deletes video from OpenAI storage using `client.videos.delete()`
+
+12. **list_videos()**: Lists all videos in OpenAI storage using `client.videos.list()`, displaying job ID, status, duration, resolution, creation timestamp, and progress for in-progress videos
 
 ### Data Flow
 
@@ -117,22 +124,33 @@ Job IDs are saved to `.sora_jobs` file automatically. Videos are stored for 15 d
 ### Prompt File Structure
 
 Markdown files in `prompts/` directory contain:
-- `## Prompt`: Video description text (required)
-- `## Video Settings`: Table with model, duration, and orientation (required)
+
+**Required Sections:**
+- `## Prompt`: Video description text
+- `## Video Settings`: Table with model, duration, and orientation
   - model: sora-2 or sora-2-pro (defaults to sora-2)
   - duration: requested duration in seconds
   - orientation: landscape, portrait, or square
-- `## Audio (optional)`: Path to audio file or "None"
-- `## Inspiration Image (optional)`: Path to reference image or "None"
 
-Note: Audio and inspiration images are embedded in the prompt file, not passed as CLI arguments. Model can be overridden via `--model` CLI argument.
+**Optional Advanced Sections:**
+- `## Input Reference (optional)`: Path to single image file for image-to-video mode (anchors first frame, must match target resolution)
+- `## Camera (optional)`: Shot type, lens specs (e.g., 85mm), aperture (f-stop), camera movement
+- `## Lighting (optional)`: Time of day, lighting style, color palette description
+- `## Dialogue (optional)`: Spoken lines (separated from visual description for better results)
+- `## Audio (optional)`: Path to audio file for post-processing overlay
+
+**Notes:**
+- Model can be overridden via `--model` CLI argument
+- Input Reference enables image-to-video generation
+- Camera, Lighting, and Dialogue are automatically formatted into enhanced prompt structure
+- See `prompts/advanced_example.md` for full example
 
 ### API Models
 
 **sora-2** (standard): 4, 8, or 12 seconds
-**sora-2-pro** (professional): 10, 15, or 25 seconds
+**sora-2-pro** (professional): 4, 8, or 12 seconds (higher quality, same duration options)
 
-The `map_duration_to_valid()` function maps requested durations to the nearest valid value for the selected model.
+The `map_duration_to_valid()` function maps requested durations to the nearest valid value. Despite web app supporting longer durations, the API currently limits both models to 4/8/12 seconds.
 
 ### Important Limitations
 

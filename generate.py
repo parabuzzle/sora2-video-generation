@@ -67,13 +67,34 @@ def parse_markdown_prompt(file_path):
     else:
         sections['audio'] = None
 
-    # Extract inspiration image (optional)
-    image_match = re.search(r'## Inspiration Image.*?\n\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
-    if image_match:
-        image_text = image_match.group(1).strip()
-        sections['inspiration_image'] = None if image_text.lower() == 'none' else image_text
+    # Extract input reference image (optional) - used for image-to-video
+    input_ref_match = re.search(r'## Input Reference.*?\n\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
+    if input_ref_match:
+        input_ref_text = input_ref_match.group(1).strip()
+        sections['input_reference'] = None if input_ref_text.lower() == 'none' else input_ref_text
     else:
-        sections['inspiration_image'] = None
+        sections['input_reference'] = None
+
+    # Extract camera/shot metadata (optional)
+    camera_match = re.search(r'## Camera.*?\n\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
+    if camera_match:
+        sections['camera'] = camera_match.group(1).strip()
+    else:
+        sections['camera'] = None
+
+    # Extract lighting/palette (optional)
+    lighting_match = re.search(r'## Lighting.*?\n\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
+    if lighting_match:
+        sections['lighting'] = lighting_match.group(1).strip()
+    else:
+        sections['lighting'] = None
+
+    # Extract dialogue block (optional)
+    dialogue_match = re.search(r'## Dialogue.*?\n\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
+    if dialogue_match:
+        sections['dialogue'] = dialogue_match.group(1).strip()
+    else:
+        sections['dialogue'] = None
 
     return sections
 
@@ -83,28 +104,46 @@ def get_resolution(orientation):
     return ORIENTATION_MAP.get(orientation, '1280x720')
 
 
+def build_enhanced_prompt(base_prompt, camera=None, lighting=None, dialogue=None):
+    """
+    Build an enhanced prompt following Sora's recommended structure.
+    Combines base prompt with camera, lighting, and dialogue metadata.
+    """
+    enhanced_parts = [base_prompt]
+
+    # Add camera/shot information
+    if camera:
+        enhanced_parts.append(f"\n\nCamera: {camera}")
+
+    # Add lighting/palette information
+    if lighting:
+        enhanced_parts.append(f"\n\nLighting: {lighting}")
+
+    # Add dialogue block (should be separated from visual description)
+    if dialogue:
+        enhanced_parts.append(f"\n\nDIALOGUE:\n{dialogue}")
+
+    return "".join(enhanced_parts)
+
+
 def map_duration_to_valid(duration, model='sora-2'):
     """
     Map requested duration to nearest valid Sora API duration.
-    Valid durations depend on model:
-    - sora-2: '4', '8', '12' seconds
-    - sora-2-pro: '10', '15', '25' seconds
+    Both models currently support: '4', '8', '12' seconds
     """
-    if model == 'sora-2-pro':
-        valid_durations = [10, 15, 25]
-    else:  # sora-2
-        valid_durations = [4, 8, 12]
+    # Both models currently use the same valid durations
+    valid_durations = [4, 8, 12]
 
     # Find closest valid duration
     closest = min(valid_durations, key=lambda x: abs(x - duration))
 
     if closest != duration:
-        print(f"  Note: Requested {duration}s, using closest valid duration for {model}: {closest}s")
+        print(f"  Note: Requested {duration}s, using closest valid duration: {closest}s")
 
     return str(closest)
 
 
-def generate_video(client, prompt, duration, resolution, model='sora-2'):
+def generate_video(client, prompt, duration, resolution, model='sora-2', input_reference=None):
     """
     Submit video generation request to Sora API.
     Returns the job response.
@@ -113,18 +152,33 @@ def generate_video(client, prompt, duration, resolution, model='sora-2'):
     print(f"  Model: {model}")
     print(f"  Duration: {duration} seconds")
     print(f"  Resolution: {resolution}")
+    if input_reference:
+        print(f"  Input Reference: {input_reference}")
     print(f"  Prompt: {prompt[:100]}..." if len(prompt) > 100 else f"  Prompt: {prompt}")
 
     try:
         # Map duration to valid API value for the selected model
         valid_duration = map_duration_to_valid(duration, model)
 
-        response = client.videos.create(
-            model=model,
-            prompt=prompt,
-            seconds=valid_duration,
-            size=resolution
-        )
+        # Build request parameters
+        request_params = {
+            'model': model,
+            'prompt': prompt,
+            'seconds': valid_duration,
+            'size': resolution
+        }
+
+        # Add input_reference if provided (image-to-video)
+        if input_reference and os.path.exists(input_reference):
+            with open(input_reference, 'rb') as img_file:
+                request_params['input_reference'] = img_file
+                response = client.videos.create(**request_params)
+        else:
+            if input_reference:
+                print(f"  Warning: Input reference file not found: {input_reference}")
+                print(f"  Proceeding with text-to-video generation")
+            response = client.videos.create(**request_params)
+
         return response
     except Exception as e:
         print(f"Error submitting video generation: {e}")
@@ -403,7 +457,7 @@ def main():
         '--model',
         choices=['sora-2', 'sora-2-pro'],
         default=None,
-        help='Sora model to use (overrides model in prompt file). sora-2: 4/8/12s, sora-2-pro: 10/15/25s'
+        help='Optional: Override model from prompt file. Both models support 4/8/12 second videos'
     )
 
     args = parser.parse_args()
@@ -450,8 +504,15 @@ def main():
     print(f"  Model: {model}")
     print(f"  Duration: {sections['duration']} seconds")
     print(f"  Orientation: {sections['orientation']}")
+    if sections['input_reference']:
+        print(f"  Input Reference: {sections['input_reference']}")
+    if sections['camera']:
+        print(f"  Camera: {sections['camera']}")
+    if sections['lighting']:
+        print(f"  Lighting: {sections['lighting']}")
+    if sections['dialogue']:
+        print(f"  Dialogue: Yes")
     print(f"  Audio: {sections['audio'] or 'None'}")
-    print(f"  Inspiration Image: {sections['inspiration_image'] or 'None'}")
 
     # Initialize OpenAI client
     api_key = os.getenv('OPENAI_API_KEY')
@@ -465,13 +526,22 @@ def main():
     # Convert orientation to resolution
     resolution = get_resolution(sections['orientation'])
 
+    # Build enhanced prompt with camera, lighting, and dialogue metadata
+    enhanced_prompt = build_enhanced_prompt(
+        sections['prompt'],
+        camera=sections['camera'],
+        lighting=sections['lighting'],
+        dialogue=sections['dialogue']
+    )
+
     # Generate video
     job = generate_video(
         client,
-        sections['prompt'],
+        enhanced_prompt,
         sections['duration'],
         resolution,
-        model
+        model,
+        input_reference=sections['input_reference']
     )
 
     # Save job ID for recovery
@@ -490,11 +560,6 @@ def main():
             video_path = overlay_audio(video_path, audio_path)
         else:
             print(f"\nWarning: Audio file not found: {audio_path}")
-
-    # Log inspiration image (for reference)
-    if sections['inspiration_image']:
-        print(f"\nNote: Inspiration image referenced: {sections['inspiration_image']}")
-        print("  (Logged for reference - not directly used in this generation)")
 
     print(f"\n{'='*60}")
     print(f"Video generation complete!")
