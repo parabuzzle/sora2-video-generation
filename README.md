@@ -178,7 +178,7 @@ path/to/image.jpg
 ## Project Structure
 
 ```
-halloween/
+sora2-video-generation/
 ├── generate.py           # Main CLI script
 ├── prompts/             # Markdown prompt files
 │   └── testing.md       # Example prompt
